@@ -1,0 +1,42 @@
+{
+  "historyId": "register-capture",
+  "title": "Register capture",
+  "context": "Use the reset record for capture run-42.",
+  "operations": [
+    {
+      "id": "read-a",
+      "kind": "read",
+      "invoke": 0,
+      "response": 1,
+      "value": 0
+    },
+    {
+      "id": "write-b",
+      "kind": "write",
+      "invoke": 2,
+      "response": 5,
+      "value": 1
+    },
+    {
+      "id": "read-c",
+      "kind": "read",
+      "invoke": 3,
+      "response": 4,
+      "value": 1
+    }
+  ],
+  "initialPresets": [
+    {
+      "id": "zero",
+      "label": "Reset zero",
+      "reference": "run-42 reset log",
+      "value": 0
+    },
+    {
+      "id": "one",
+      "label": "Reset one",
+      "reference": "run-42 restore log",
+      "value": 1
+    }
+  ]
+}

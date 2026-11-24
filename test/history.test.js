@@ -121,13 +121,22 @@ test('full-permutation oracle checks every three-call endpoint order and binary 
   assert.equal(count, 11520);
 });
 test('independent oracle checks larger generated histories and multitype values', () => {
-  let seed = 23923; const random = n => { seed = (Math.imul(seed,1664525)+1013904223)>>>0; return seed % n; };
+  let seed = 23923; const random = n => { seed = (Math.imul(seed,1664525)+1013904223)>>>0; return Math.floor(seed * n / 0x100000000); };
   const values = [0, 1, false, true, null, '0'];
+  const coverage = new Map([4, 5, 6].map(size => [size, { accepted: 0, rejected: 0 }]));
   for (let run = 0; run < 120; run++) {
     const n = 4 + run % 3, endpoints = Array.from({length:2*n},(_,i)=>i);
     for (let i=endpoints.length-1;i>0;i--) { const j=random(i+1); [endpoints[i],endpoints[j]]=[endpoints[j],endpoints[i]]; }
     const operations=Array.from({length:n},(_,i)=>op(`op-${i}`,random(2)?'write':'read',Math.min(endpoints[2*i],endpoints[2*i+1]),Math.max(endpoints[2*i],endpoints[2*i+1]),values[random(values.length)]));
     const input=inputFor(operations,values[random(values.length)]),result=checkHistory(input,'initial');
-    assert.deepEqual(result.witnessOperationIds,oracle(input));verifyWitness(input,result);
+    const expected = oracle(input);
+    assert.deepEqual(result.witnessOperationIds,expected);assert.equal(result.linearizable,expected !== null);verifyWitness(input,result);
+    if (new Set(operations.map(operation => operation.kind)).size === 2) {
+      coverage.get(n)[expected !== null ? 'accepted' : 'rejected']++;
+    }
+  }
+  for (const [size, counts] of coverage) {
+    assert.ok(counts.accepted > 0, `${size}-call histories must include a linearizable mixed read/write case`);
+    assert.ok(counts.rejected > 0, `${size}-call histories must include a rejected mixed read/write case`);
   }
 });
